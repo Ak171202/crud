@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    .split {
+      height: 100%;
+      width: 50%;
+      position: fixed;
+      z-index: 1;
+      top: 0;
+      overflow-x: hidden;
+      padding-top: 20px;
+    }
+
+    /* Control the left side */
+    .left {
+      left: 0;
+      background-color: white;
+    }
+
+    /* Control the right side */
+    .right {
+      right: 0;
+      background-color: aqua;
+    }
+
+    /* If you want the content centered horizontally and vertically */
+    .centered {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+    .card{
+      height:300px;
+      width: 300px;
+      color:purple;
+      background-color: antiquewhite;
+      padding-top: 50px;
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+  <div class="split left">
+    <div class="centered">
+      <div class="card">
+      <h1>SURVEY FORM</h1>
+      <form id="myform">
+        <input type="hidden" name="" id="editid" value="">
+        <label for="">name</label>
+        <input type="text" name=" " id="name"><br><br>
+        <label for="">phone</label>
+        <input type="number" name="" id="phone"><br><br>
+        <input type="submit" value="SAVE">
+      </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="split right">
+    <div class="centered">
+      <table border="1">
+        <thead>
+          <tr>
+            <th>id</th>
+            <th>....name....</th>
+            <th>......phone.....</th>
+            <th colspan="2">Action</th>
+          </tr>
+        </thead>
+        <tbody id="tablebody">
+
+        </tbody>
+      </table>
+
+    </div>
+  
+  
+  
+</div>
+</body>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+  integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.6.4.js" integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E="
+  crossorigin="anonymous"></script>
+
+<script>
+  async function getdata() {
+    try {
+      var data = await fetch("https://6487fa170e2469c038fcb6e3.mockapi.io/surv/");
+      var dataobj = await data.json();
+      console.log(dataobj);
+      var table = document.getElementById("tablebody");
+      table.innerHTML = "";
+      dataobj.forEach(element => {
+
+        var tr = document.createElement("tr");
+        tr.style.width = "500px";
+
+        var id = document.createElement('td');
+        id.innerText = element.id;
+        tr.appendChild(id);
+        var nm = document.createElement("td")
+
+        nm.innerText = element.name;
+        tr.appendChild(nm);
+        var ph = document.createElement("td")
+
+        ph.innerText = element.phone;
+        tr.appendChild(ph);
+        var button1 = document.createElement('td');
+        var b1 = document.createElement('button');
+        b1.innerText = "Edit";
+        b1.setAttribute('class', 'btn btn-info');
+        button1.appendChild(b1);
+        b1.addEventListener('click', async function () {
+          //console.log(element.id)
+          //filldata(element.id);
+          try {
+            var data = await fetch("https://6487fa170e2469c038fcb6e3.mockapi.io/surv/" + element.id);
+            var dataobj = await data.json();
+            console.log(dataobj);
+            document.getElementById('editid').value = dataobj.id;
+            document.getElementById('name').value = dataobj.name;
+            document.getElementById('phone').value = dataobj.phone;
+
+
+          }
+          catch (error) {
+            console.error(error);
+          }
+        });
+        tr.appendChild(button1);
+        //button two
+        var button2 = document.createElement('td');
+        var b2 = document.createElement('button');
+        b2.innerText = "Delete";
+        b2.setAttribute('class', 'btn btn-danger');
+        button2.appendChild(b2);
+        b2.addEventListener('click', async function () {
+          // filldelete(id);
+          try {
+      var request = await fetch("https://6487fa170e2469c038fcb6e3.mockapi.io/surv/" +element.id, {
+        method: "delete"
+      });
+      getdata();
+    } catch (error) {
+      console.error(error);
+    }
+         
+        });
+  
+        tr.appendChild(button2);
+        table.appendChild(tr);
+      });
+    }
+    catch (error) {
+            console.error(error);
+          }
+  }
+ 
+    
+  
+
+  
+   
+  
+  
+  document.getElementById("myform").addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var id = document.getElementById('editid').value;
+    var data = {
+      name: document.getElementById('name').value,
+
+      phone: document.getElementById('phone').value
+    }
+    document.getElementById('editid').value = "";
+    document.getElementById('name').value = "";
+    document.getElementById('phone').value = "";
+
+    try {
+      if (id == "") {
+        var request = await fetch("https://6487fa170e2469c038fcb6e3.mockapi.io/surv/", {
+          method: 'post',
+          body: await JSON.stringify(data),
+          headers: {
+            'Content-type': 'application/json'
+          }
+        });
+      } else {
+        var request = await fetch("https://6487fa170e2469c038fcb6e3.mockapi.io/surv/" +id, {
+          method: 'put',
+          body: await JSON.stringify(data),
+          headers: {
+            'Content-type': 'application/json'
+          }
+        });
+      }
+
+      getdata();
+    } catch (error) {
+      console.error(error);
+    }
+   
+  });
+  window.onload = function () {
+    getdata();
+  }
+
+</script>
+
+</html>
